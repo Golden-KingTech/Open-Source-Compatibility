@@ -16,4 +16,4 @@ All notable changes to this project will be documented here.
 - JSON report output
 - Automated test suite
 - GitHub Actions compatibility matrix
-- MIT license and contribution guidelines
+- Contribution guidelines
