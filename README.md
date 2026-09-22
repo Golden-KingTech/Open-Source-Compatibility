@@ -2,13 +2,13 @@
 
 A lightweight command-line tool for checking whether a project is compatible with the environment it is running in.
 
-Version **0.1.0** checks:
+Version **0.2.0** checks:
 
 - Operating system
 - Python version
-- Installed dependency versions
+- Installed dependency versions and ranges
 - Overall compatibility score
-- Human-readable or JSON output
+- Configuration validation\n- Human-readable or JSON output
 
 ## Why this project exists
 
@@ -79,12 +79,12 @@ Configuration uses JSON:
   "max_python": "3.14",
   "supported_os": ["Windows", "Linux", "Darwin"],
   "dependencies": {
-    "pytest": "8.4.2"
+    "pytest": ">=8,<9"
   }
 }
 ```
 
-Dependency versions are exact matches in v0.1. More flexible version ranges are planned for a future release.
+Dependency requirements support exact versions and simple ranges such as `>=2.0,<3.0`, `==8.4.2`, `!=2.1`, `>`, `<`, `>=`, and `<=`.
 
 ## Testing
 
@@ -99,7 +99,7 @@ GitHub Actions automatically tests supported Python versions on Windows, Ubuntu,
 ## Roadmap
 
 - **v0.1** — OS, Python, dependency checks, CLI, JSON output
-- **v0.2** — Version ranges and richer configuration validation
+- **v0.2** — Version ranges and richer configuration validation ✓
 - **v0.3** — Project file detection and automated suggestions
 - **v0.4** — HTML compatibility reports
 - **v1.0** — Stable plugin-friendly compatibility framework
