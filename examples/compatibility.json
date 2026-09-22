@@ -1,0 +1,8 @@
+{
+  "min_python": "3.10",
+  "max_python": "3.13",
+  "supported_os": ["Linux", "Windows", "Darwin"],
+  "dependencies": {
+    "pytest": ">=8,<9"
+  }
+}
