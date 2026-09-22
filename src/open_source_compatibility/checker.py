@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.metadata
 import json
 import platform
+import re
 import sys
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -26,8 +27,7 @@ class CompatibilityReport:
     score: int
 
     def to_dict(self) -> dict[str, Any]:
-        data = asdict(self)
-        return data
+        return asdict(self)
 
 
 def get_environment() -> dict[str, str]:
@@ -42,11 +42,31 @@ def get_environment() -> dict[str, str]:
 def version_tuple(version: str) -> tuple[int, ...]:
     parts: list[int] = []
     for piece in version.split("."):
-        digits = "".join(ch for ch in piece if ch.isdigit())
-        if not digits:
+        match = re.match(r"\d+", piece)
+        if not match:
             break
-        parts.append(int(digits))
+        parts.append(int(match.group()))
     return tuple(parts)
+
+
+def validate_config(config: dict[str, Any]) -> None:
+    allowed = {"min_python", "max_python", "supported_os", "dependencies"}
+    unknown = sorted(set(config) - allowed)
+    if unknown:
+        raise ValueError(f"Unknown configuration key(s): {', '.join(unknown)}")
+
+    if "supported_os" in config and not isinstance(config["supported_os"], list):
+        raise ValueError("supported_os must be a list.")
+
+    dependencies = config.get("dependencies", {})
+    if not isinstance(dependencies, dict):
+        raise ValueError("dependencies must be an object mapping package names to version requirements.")
+
+    for package, requirement in dependencies.items():
+        if not isinstance(package, str) or not package.strip():
+            raise ValueError("Dependency names must be non-empty strings.")
+        if requirement is not None and not isinstance(requirement, str):
+            raise ValueError(f"Dependency requirement for {package} must be a string or null.")
 
 
 def check_python(config: dict[str, Any]) -> CheckResult:
@@ -55,69 +75,66 @@ def check_python(config: dict[str, Any]) -> CheckResult:
     maximum = config.get("max_python")
 
     if minimum and current < version_tuple(str(minimum)):
-        return CheckResult(
-            "Python",
-            "fail",
-            f"Python {platform.python_version()} is below minimum {minimum}.",
-        )
-
+        return CheckResult("Python", "fail", f"Python {platform.python_version()} is below minimum {minimum}.")
     if maximum and current > version_tuple(str(maximum)):
-        return CheckResult(
-            "Python",
-            "fail",
-            f"Python {platform.python_version()} is above maximum {maximum}.",
-        )
-
-    return CheckResult(
-        "Python",
-        "pass",
-        f"Python {platform.python_version()} is compatible.",
-    )
+        return CheckResult("Python", "fail", f"Python {platform.python_version()} is above maximum {maximum}.")
+    return CheckResult("Python", "pass", f"Python {platform.python_version()} is compatible.")
 
 
 def check_os(config: dict[str, Any]) -> CheckResult:
     supported = [str(item).lower() for item in config.get("supported_os", [])]
     current = (platform.system() or "Unknown").lower()
-
     if supported and current not in supported:
-        return CheckResult(
-            "Operating system",
-            "fail",
-            f"{platform.system()} is not listed in supported_os.",
-        )
+        return CheckResult("Operating system", "fail", f"{platform.system()} is not listed in supported_os.")
+    return CheckResult("Operating system", "pass", f"{platform.system()} is supported.")
 
-    return CheckResult(
-        "Operating system",
-        "pass",
-        f"{platform.system()} is supported.",
-    )
+
+def _compare_versions(installed: str, operator: str, required: str) -> bool:
+    left, right = version_tuple(installed), version_tuple(required)
+    return {
+        "==": left == right,
+        "!=": left != right,
+        ">=": left >= right,
+        "<=": left <= right,
+        ">": left > right,
+        "<": left < right,
+    }[operator]
+
+
+def version_satisfies(installed: str, requirement: str) -> bool:
+    """Evaluate simple comma-separated PEP-440-style comparisons without extra dependencies."""
+    for clause in (part.strip() for part in requirement.split(",")):
+        if not clause:
+            continue
+        match = re.fullmatch(r"(==|!=|>=|<=|>|<)?\s*([0-9][0-9A-Za-z.\-_+]*)", clause)
+        if not match:
+            raise ValueError(f"Unsupported version requirement: {clause}")
+        operator = match.group(1) or "=="
+        if not _compare_versions(installed, operator, match.group(2)):
+            return False
+    return True
 
 
 def check_dependencies(config: dict[str, Any]) -> list[CheckResult]:
     results: list[CheckResult] = []
-    dependencies = config.get("dependencies", {})
-
-    for package, required_version in dependencies.items():
+    for package, requirement in config.get("dependencies", {}).items():
         try:
             installed = importlib.metadata.version(package)
         except importlib.metadata.PackageNotFoundError:
-            results.append(
-                CheckResult(package, "fail", f"{package} is not installed.")
-            )
+            results.append(CheckResult(package, "fail", f"{package} is not installed."))
             continue
 
-        if required_version and installed != str(required_version):
-            results.append(
-                CheckResult(
-                    package,
-                    "warn",
-                    f"Installed {installed}; config requests {required_version}.",
-                )
-            )
-        else:
-            results.append(
-                CheckResult(package, "pass", f"Installed version {installed}.")
-            )
+        if requirement:
+            try:
+                compatible = version_satisfies(installed, requirement)
+            except ValueError as exc:
+                results.append(CheckResult(package, "warn", str(exc)))
+                continue
+            if not compatible:
+                results.append(CheckResult(package, "warn", f"Installed {installed}; requirement is {requirement}."))
+                continue
+
+        results.append(CheckResult(package, "pass", f"Installed version {installed}."))
 
     return results
 
@@ -125,7 +142,6 @@ def check_dependencies(config: dict[str, Any]) -> list[CheckResult]:
 def calculate_score(checks: list[CheckResult]) -> int:
     if not checks:
         return 100
-
     weights = {"pass": 1.0, "warn": 0.5, "fail": 0.0}
     total = sum(weights.get(check.status, 0.0) for check in checks)
     return round((total / len(checks)) * 100)
@@ -133,18 +149,13 @@ def calculate_score(checks: list[CheckResult]) -> int:
 
 def run_checks(config: dict[str, Any] | None = None) -> CompatibilityReport:
     config = config or {}
+    validate_config(config)
     env = get_environment()
-
     checks = [check_python(config), check_os(config)]
     checks.extend(check_dependencies(config))
-
     return CompatibilityReport(
-        os=env["os"],
-        os_release=env["os_release"],
-        architecture=env["architecture"],
-        python_version=env["python_version"],
-        checks=checks,
-        score=calculate_score(checks),
+        os=env["os"], os_release=env["os_release"], architecture=env["architecture"],
+        python_version=env["python_version"], checks=checks, score=calculate_score(checks)
     )
 
 
@@ -152,8 +163,7 @@ def load_config(path: str | Path) -> dict[str, Any]:
     config_path = Path(path)
     with config_path.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
-
     if not isinstance(data, dict):
         raise ValueError("Configuration root must be a JSON object.")
-
+    validate_config(data)
     return data
