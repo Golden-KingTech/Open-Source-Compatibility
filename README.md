@@ -55,6 +55,14 @@ Return machine-readable output:
 osc-check --config examples/sample-config.json --json
 ```
 
+Detect common project metadata automatically:
+
+```bash
+osc-check --detect-project
+```
+
+Project detection currently recognizes `pyproject.toml`, `requirements.txt`, `package.json`, and common Python/Node lockfiles. It extracts basic runtime and dependency information without adding runtime dependencies to the checker.
+
 Example output:
 
 ```text
