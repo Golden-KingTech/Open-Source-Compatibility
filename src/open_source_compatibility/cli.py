@@ -37,7 +37,7 @@ def main() -> int:
         print()
         print("Compatibility checks:")
         for check in report.checks:
-            symbol = {"pass": "✓", "warn": "!", "fail": "✗"}.get(check.status, "?")
+            symbol = {"pass": "[PASS]", "warn": "[WARN]", "fail": "[FAIL]"}.get(check.status, "[?]")
             print(f"{symbol} {check.name}: {check.message}")
         print()
         print(f"Compatibility score: {report.score}%")
