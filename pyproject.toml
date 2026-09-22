@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "open-source-compatibility"
-version = "0.1.0"
+version = "0.2.0"
 description = "A lightweight CLI for checking project compatibility across environments."
 readme = "README.md"
 requires-python = ">=3.10"
