@@ -4,6 +4,7 @@ import argparse
 import json
 
 from .checker import load_config, run_checks
+from .detector import detect_project_files
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -16,6 +17,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to a JSON compatibility configuration file.",
     )
     parser.add_argument(
+        "--detect-project",
+        action="store_true",
+        help="Detect common project metadata files in the current directory.",
+    )
+    parser.add_argument(
         "--json",
         action="store_true",
         help="Print the report as JSON.",
@@ -25,6 +31,23 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
+    if args.detect_project:
+        detected = detect_project_files()
+        if args.json:
+            print(json.dumps([item.to_dict() for item in detected], indent=2))
+        elif detected:
+            print("Detected project files:")
+            for item in detected:
+                details = f" ({item.kind})"
+                if item.runtime:
+                    details += f" runtime={item.runtime}"
+                if item.dependencies:
+                    details += f" dependencies={', '.join(item.dependencies)}"
+                print(f"- {item.path}{details}")
+        else:
+            print("No supported project files detected.")
+        return 0
+
     config = load_config(args.config) if args.config else {}
     report = run_checks(config)
 
