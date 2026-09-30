@@ -2,7 +2,9 @@
 
 A lightweight command-line tool for checking whether a project is compatible with the environment it is running in.
 
-Current capabilities:
+**Current release: v0.4.0**
+
+## Current capabilities
 
 - Operating-system checks
 - Python-version checks
@@ -12,10 +14,13 @@ Current capabilities:
 - Human-readable and JSON output
 - Automatic project-file detection
 - Self-contained HTML compatibility reports
+- Cross-platform GitHub Actions test matrix
 
 ## Why this project exists
 
-Open-source projects often work on one machine but fail on another because of operating-system differences, unsupported Python versions, or missing dependencies. Open Source Compatibility provides a small, portable checker that maintainers can include in their projects or CI workflows.
+Open-source projects often work on one machine but fail on another because of operating-system differences, unsupported Python versions, missing dependencies, or project metadata that does not match the current environment.
+
+Open Source Compatibility gives maintainers a small, portable checker they can run locally or in CI to identify those mismatches early and produce useful reports for bug reports and build artifacts.
 
 ## Installation
 
@@ -115,17 +120,35 @@ pytest
 
 GitHub Actions automatically tests supported Python versions on Windows, Ubuntu, and macOS.
 
+## Project quality
+
+This repository includes:
+
+- Automated unit tests
+- Cross-platform CI
+- Apache-2.0 licensing
+- Security policy
+- Contribution guidelines
+- Issue and pull-request templates
+- Changelog and versioned releases
+- Dependency-light implementation
+
 ## Roadmap
 
-- **v0.1** — OS, Python, dependency checks, CLI, JSON output
+- **v0.1** — OS, Python, dependency checks, CLI, JSON output ✓
 - **v0.2** — Version ranges and richer configuration validation ✓
 - **v0.3** — Project file detection and automated suggestions ✓
-- **v0.4** — HTML compatibility reports
+- **v0.4** — HTML compatibility reports ✓
+- **v0.5** — CI-focused reporting and stricter automation behavior
 - **v1.0** — Stable plugin-friendly compatibility framework
 
 ## Contributing
 
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Security
+
+Please report vulnerabilities according to [SECURITY.md](SECURITY.md).
 
 ## License
 
