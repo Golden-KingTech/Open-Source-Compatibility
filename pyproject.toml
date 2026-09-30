@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "open-source-compatibility"
-version = "0.2.0"
+version = "0.4.0"
 description = "A lightweight CLI for checking project compatibility across environments."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,12 +12,24 @@ license = {text = "Apache-2.0"}
 authors = [
   {name = "Golden-KingTech"}
 ]
-keywords = ["compatibility", "open-source", "cli", "python"]
+keywords = ["compatibility", "open-source", "cli", "python", "ci", "environment"]
 classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent"
 ]
+
+[project.urls]
+Homepage = "https://github.com/Golden-KingTech/Open-Source-Compatibility"
+Repository = "https://github.com/Golden-KingTech/Open-Source-Compatibility"
+Issues = "https://github.com/Golden-KingTech/Open-Source-Compatibility/issues"
+Changelog = "https://github.com/Golden-KingTech/Open-Source-Compatibility/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
