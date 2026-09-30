@@ -2,13 +2,16 @@
 
 A lightweight command-line tool for checking whether a project is compatible with the environment it is running in.
 
-Version **0.2.0** checks:
+Current capabilities:
 
-- Operating system
-- Python version
-- Installed dependency versions and ranges
+- Operating-system checks
+- Python-version checks
+- Installed dependency version ranges
 - Overall compatibility score
-- Configuration validation\n- Human-readable or JSON output
+- Configuration validation
+- Human-readable and JSON output
+- Automatic project-file detection
+- Self-contained HTML compatibility reports
 
 ## Why this project exists
 
@@ -61,9 +64,17 @@ Detect common project metadata automatically:
 osc-check --detect-project
 ```
 
-Project detection currently recognizes `pyproject.toml`, `requirements.txt`, `package.json`, and common Python/Node lockfiles. It extracts basic runtime and dependency information without adding runtime dependencies to the checker.
+Project detection recognizes `pyproject.toml`, `requirements.txt`, `package.json`, and common Python/Node lockfiles. It extracts basic runtime and dependency information without adding runtime dependencies to the checker.
 
-Example output:
+Generate a shareable HTML report:
+
+```bash
+osc-check --config examples/sample-config.json --html-report artifacts/compatibility.html
+```
+
+The HTML report is self-contained, dependency-free, and includes environment details, every compatibility check, and the final score. This makes it useful as a CI artifact or attachment to bug reports.
+
+Example terminal output:
 
 ```text
 OS: Windows 11
@@ -71,8 +82,8 @@ Architecture: AMD64
 Python: 3.13.2
 
 Compatibility checks:
-✓ Python: Python 3.13.2 is compatible.
-✓ Operating system: Windows is supported.
+[PASS] Python: Python 3.13.2 is compatible.
+[PASS] Operating system: Windows is supported.
 
 Compatibility score: 100%
 ```
@@ -108,7 +119,7 @@ GitHub Actions automatically tests supported Python versions on Windows, Ubuntu,
 
 - **v0.1** — OS, Python, dependency checks, CLI, JSON output
 - **v0.2** — Version ranges and richer configuration validation ✓
-- **v0.3** — Project file detection and automated suggestions
+- **v0.3** — Project file detection and automated suggestions ✓
 - **v0.4** — HTML compatibility reports
 - **v1.0** — Stable plugin-friendly compatibility framework
 

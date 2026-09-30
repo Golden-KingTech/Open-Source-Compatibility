@@ -5,6 +5,7 @@ import json
 
 from .checker import load_config, run_checks
 from .detector import detect_project_files
+from .reporting import write_html_report
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -25,6 +26,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--json",
         action="store_true",
         help="Print the report as JSON.",
+    )
+    parser.add_argument(
+        "--html-report",
+        metavar="PATH",
+        help="Write a self-contained HTML compatibility report to PATH.",
     )
     return parser
 
@@ -51,9 +57,13 @@ def main() -> int:
     config = load_config(args.config) if args.config else {}
     report = run_checks(config)
 
+    if args.html_report:
+        output_path = write_html_report(report, args.html_report)
+        print(f"HTML report written to {output_path}")
+
     if args.json:
         print(json.dumps(report.to_dict(), indent=2))
-    else:
+    elif not args.html_report:
         print(f"OS: {report.os} {report.os_release}")
         print(f"Architecture: {report.architecture}")
         print(f"Python: {report.python_version}")
